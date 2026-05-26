@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#fafaf7">
+<title>Архетипы: тренажёр взгляда</title>
+<style>
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0;
+  background: #fafaf7;
+  color: #1a1a1a;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px; line-height: 1.5;
+  min-height: 100vh; overflow-x: hidden;
+}
+.app { max-width: 540px; margin: 0 auto; padding: 16px; min-height: 100vh; }
+.menu-title {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px; font-weight: 700; color: #8b1a1a;
+  text-align: center; margin: 24px 0 8px; line-height: 1.1; letter-spacing: -0.5px;
+}
+.menu-sub { text-align: center; color: #6b6b66; font-size: 15px; margin-bottom: 32px; }
+.ornament {
+  height: 14px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14' viewBox='0 0 28 14'%3E%3Cpath d='M0 7 L7 0 L14 7 L21 0 L28 7 L21 14 L14 7 L7 14 Z' fill='none' stroke='%23c4c4be' stroke-width='1'/%3E%3C/svg%3E");
+  background-repeat: repeat-x; background-size: 28px 14px;
+  background-position: center; margin: 24px 0; opacity: 0.6;
+}
+.level-card {
+  background: #fff; border: 1px solid #e8e6df; border-radius: 12px;
+  padding: 18px 20px; margin-bottom: 12px; cursor: pointer;
+  transition: transform 0.1s, border-color 0.15s;
+  display: block; width: 100%; text-align: left; font-family: inherit;
+}
+.level-card:active { transform: scale(0.98); }
+.level-card.locked { opacity: 0.45; }
+.level-num {
+  display: inline-block; width: 28px; height: 28px; border-radius: 50%;
+  background: #8b1a1a; color: #fff; font-weight: 600; font-size: 14px;
+  text-align: center; line-height: 28px; margin-right: 10px; vertical-align: middle;
+}
+.locked .level-num { background: #c4c4be; }
+.level-title { display: inline-block; font-weight: 600; font-size: 16px; vertical-align: middle; }
+.level-desc { font-size: 13px; color: #6b6b66; margin: 8px 0 0 38px; line-height: 1.4; }
+.level-card .lock-icon { float: right; color: #c4c4be; font-size: 14px; margin-top: 6px; }
+.progress-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 13px; color: #6b6b66; margin-bottom: 10px;
+}
+.dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 18px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #e0ddd4; }
+.dot.correct { background: #4a7c4a; }
+.dot.wrong { background: #c44b4b; }
+.dot.current { background: #8b1a1a; transform: scale(1.3); }
+.image-card {
+  background: #fff; border: 1px solid #e8e6df; border-radius: 12px;
+  overflow: hidden; margin-bottom: 16px;
+}
+.image-card img { width: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+.series-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+.series-grid .image-card { margin: 0; }
+.q-label { font-size: 14px; color: #6b6b66; margin-bottom: 10px; }
+.answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.answer-btn {
+  background: #fff; border: 1px solid #e8e6df; border-radius: 10px;
+  padding: 12px 10px; font-size: 14px; font-weight: 500; color: #1a1a1a;
+  cursor: pointer; font-family: inherit; transition: background 0.1s; min-height: 48px;
+}
+.answer-btn:active { background: #f0eee5; }
+.markers-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.marker-btn {
+  background: #fff; border: 1px solid #e8e6df; border-radius: 10px;
+  padding: 10px 12px; text-align: left; font-size: 14px; font-family: inherit;
+  cursor: pointer; color: #1a1a1a; transition: all 0.1s;
+}
+.marker-btn.selected { background: #fdf2f2; border-color: #8b1a1a; color: #8b1a1a; font-weight: 500; }
+.marker-btn .check { margin-right: 6px; font-weight: 700; }
+.primary-btn {
+  width: 100%; background: #8b1a1a; color: #fff; border: none; border-radius: 10px;
+  padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.primary-btn:active { background: #6e1414; }
+.secondary-btn {
+  width: 100%; background: #fff; color: #1a1a1a; border: 1px solid #e8e6df;
+  border-radius: 10px; padding: 12px; font-size: 14px; font-family: inherit;
+  cursor: pointer; margin-top: 8px;
+}
+.verdict { text-align: center; margin: 8px 0 16px; }
+.verdict-badge {
+  display: inline-block; padding: 8px 18px; border-radius: 100px;
+  font-weight: 600; font-size: 14px;
+}
+.verdict-correct { background: #e8f1e8; color: #2d5a2d; }
+.verdict-wrong { background: #fbe9e9; color: #8b1a1a; }
+.answer-box {
+  background: #fff; border: 1px solid #e8e6df; border-radius: 12px;
+  padding: 14px 16px; margin-bottom: 14px;
+}
+.answer-label { font-size: 12px; color: #6b6b66; text-transform: uppercase; letter-spacing: 0.5px; }
+.answer-name {
+  font-family: Georgia, serif; font-size: 22px; font-weight: 700;
+  color: #8b1a1a; margin: 4px 0;
+}
+.your-choice { font-size: 13px; color: #6b6b66; margin-top: 4px; }
+.markers-score { font-size: 13px; color: #6b6b66; margin-top: 6px; }
+.explanation { font-size: 14px; line-height: 1.65; margin-bottom: 8px; color: #2a2a28; }
+.explanation-general {
+  font-size: 13px; line-height: 1.55; margin-bottom: 18px;
+  color: #6b6b66; font-style: italic;
+  border-top: 1px solid #ece9e0; padding-top: 10px; margin-top: 14px;
+}
+.final-screen { text-align: center; padding: 32px 0; }
+.final-icon { font-family: Georgia, serif; font-size: 64px; color: #8b1a1a; margin-bottom: 12px; line-height: 1; }
+.final-title { font-family: Georgia, serif; font-size: 26px; font-weight: 700; margin: 0 0 8px; color: #1a1a1a; }
+.final-score { font-size: 16px; color: #6b6b66; margin-bottom: 24px; }
+.final-hint { font-size: 13px; color: #888; margin-bottom: 24px; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 18px; }
+.back-btn {
+  background: none; border: none; color: #6b6b66; font-size: 14px;
+  cursor: pointer; padding: 4px 8px; font-family: inherit; margin-left: -8px;
+}
+.back-btn:active { color: #1a1a1a; }
+.level-tag {
+  font-size: 12px; color: #8b1a1a; background: #fdf2f2;
+  padding: 4px 10px; border-radius: 100px; font-weight: 600; letter-spacing: 0.3px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+#screen > * { animation: fadeIn 0.2s ease-out; }
+.foot {
+  text-align: center; font-size: 12px; color: #a8a89e;
+  margin-top: 32px; padding-bottom: 24px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="screen"></div>
+  <div class="foot">МАСТЕРСКАЯ БИЗНЕС-АРХЕТИПИРОВАНИЯ</div>
+</div>
+<script>
+const DATA = {"archetypes": [{"id": "yaga", "name": "Баба Яга"}, {"id": "premudraya", "name": "Василиса Премудрая"}, {"id": "prekrasnaya", "name": "Василиса Прекрасная"}, {"id": "tsarevich", "name": "Иван Царевич"}, {"id": "volk", "name": "Серый Волк"}, {"id": "its", "name": "Иван 3-й сын"}, {"id": "bayun", "name": "Кот Баюн"}], "images": {"yaga": ["yaga_01", "yaga_02", "yaga_03", "yaga_04", "yaga_05"], "premudraya": ["premudraya_01", "premudraya_02", "premudraya_03", "premudraya_04", "premudraya_05"], "prekrasnaya": ["prekrasnaya_01", "prekrasnaya_02", "prekrasnaya_03", "prekrasnaya_04", "prekrasnaya_05"], "tsarevich": ["tsarevich_01", "tsarevich_02", "tsarevich_03", "tsarevich_04", "tsarevich_05"], "volk": ["volk_01", "volk_02", "volk_03", "volk_04", "volk_05"], "its": ["its_01", "its_02", "its_03", "its_04", "its_05"], "bayun": ["bayun_01", "bayun_02", "bayun_03", "bayun_04", "bayun_05"]}, "imageData": {"yaga_01": "images/img_01.jpg", "yaga_02": "images/img_02.jpg", "yaga_03": "images/img_03.jpg", "yaga_04": "images/img_04.jpg", "yaga_05": "images/img_05.jpg", "premudraya_01": "images/img_06.jpg", "premudraya_02": "images/img_07.jpg", "premudraya_03": "images/img_08.jpg", "premudraya_04": "images/img_09.jpg", "premudraya_05": "images/img_10.jpg", "prekrasnaya_01": "images/img_11.jpg", "prekrasnaya_02": "images/img_12.jpg", "prekrasnaya_03": "images/img_13.jpg", "prekrasnaya_04": "images/img_14.jpg", "prekrasnaya_05": "images/img_15.jpg", "tsarevich_01": "images/img_16.jpg", "tsarevich_02": "images/img_17.jpg", "tsarevich_03": "images/img_18.jpg", "tsarevich_04": "images/img_19.jpg", "tsarevich_05": "images/img_20.jpg", "volk_01": "images/img_21.jpg", "volk_02": "images/img_22.jpg", "volk_03": "images/img_23.jpg", "volk_04": "images/img_24.jpg", "volk_05": "images/img_25.jpg", "its_01": "images/img_26.jpg", "its_02": "images/img_27.jpg", "its_03": "images/img_28.jpg", "its_04": "images/img_29.jpg", "its_05": "images/img_30.jpg", "bayun_01": "images/img_31.jpg", "bayun_02": "images/img_32.jpg", "bayun_03": "images/img_33.jpg", "bayun_04": "images/img_34.jpg", "bayun_05": "images/img_35.jpg"}, "perImage": {"bayun_01": "Эталонный Кот Баюн. Считываем по слоям: оливково-зелёный свитер крупной вязки — главный сигнал, такая палитра и фактура почти всегда у этого архетипа. Обе ладони обхватывают керамическую кружку с обеих сторон — это коточный жест, заземление через тёплый предмет. Поза с локтями на столе расслабленная, тело не на показ. Лёгкая улыбка глазами, лёгкая щетина (ухоженная, но не «в ноль»), волнистые волосы естественной формы. Если человек в природной палитре, мягких фактурах, с тёплым предметом в руках — почти всегда Баюн.", "bayun_02": "Кот Баюн в городской офисной версии. Бежевый кардиган на пуговицах поверх белой футболки — мягкая нейтральная палитра, природные оттенки. Аккуратная борода с проседью — ухоженная, но не вылизанная: характерный коточный баланс «опрятно, но без напряжения». Лёгкая полуулыбка, спокойный взгляд в сторону. Среда подсказывает интуитивно: книжные полки за спиной, домашняя обстановка, ничего глянцевого. Кот часто узнаётся по тому, что человеку явно комфортно в своей оболочке — нет ни демонстрации, ни попытки спрятаться.", "bayun_03": "Кот Баюн в богемно-творческой версии. Тёмно-зелёный бархатный пиджак поверх белой льняной рубашки с распахнутым воротом — мягкая фактура бархата и природный цвет ровно по канону. Деревянный кулон-оберег на кожаном шнурке — аксессуар со смыслом, не статусный. Длинные волнистые волосы, лёгкая щетина — естественность, а не салон. Керамическая кружка ручной работы на столе. Поза расслабленная, рука покоится на деревянном столе — заземление через материал. Тут Баюн «художник», но без яговской неухоженности.", "bayun_04": "Кот Баюн в строгой городской версии. Замшевая жилетка цвета охры поверх серой водолазки — мягкие фактуры (замша) в нейтральной природной палитре. Кожаный плетёный браслет на запястье — узкий, неброский, со смыслом. Жест рукой у подбородка — задумчивый, без демонстрации. Растения на заднем плане, рассеянный естественный свет. Это вариант Кота, который ходит на работу и встречи, но даже там сохраняет свою тёплую среду.", "bayun_05": "Кот Баюн в домашней версии. Льняная рубашка цвета шалфея с тонким растительным принтом — мягкий лён + природный мотив = двойной маркер архетипа. Расстёгнутый ворот, рукава закатаны небрежно — расслабленность, не неряшливость. В руках открытая книга, поза с поджатой ногой на диване — типично коточный «уютный угол». Тёплый свет лампы, домашняя среда, лёгкая щетина. Так Кот Баюн отдыхает: с книгой, в мягкой одежде, в тёплом свете.", "yaga_01": "Чистая Яга в домашней версии. Сразу несколько сильных маркеров. Балахонистый серый худи оверсайз — главный признак, одежда явно на пару размеров больше. Мешковатые штаны карго, тоже свободные. Длинные неухоженные волосы с хвостиком на голове + большая запущенная борода — классическая мужская Яга. Сидит на полу скрестив ноги, вокруг разбросаны книги и бумаги — «среда трансформатора», где порядок невозможен, потому что мысль важнее. Взгляд куда-то вдаль, мимо камеры. Если человек сидит на полу в балахоне среди хаоса бумаг — он не неряха, а Яга.", "yaga_02": "Яга в «уютной» версии — тут легко перепутать с Котом Баюном, поэтому разбираем внимательно. Длинные неухоженные волосы, большая запущенная борода — у Кота борода была бы ухоженная. Множество слоёв бус и оберегов на шее, перстни на пальцах, плетёные браслеты — обвешан смыслами и слоями. Поза с поджатой ногой, опора на руку. Старое потёртое кожаное кресло с прорехами, текстиль с этникой, керамическая кружка ручной работы рядом. Граница с Котом тут в том, что у Яги всё чуть-чуть слишком: слишком длинно, слишком много слоёв, слишком немыто.", "yaga_03": "Яга в «учёной» версии. Очки, борода с сильной проседью — образ интеллектуала, который перестал замечать своё тело. Тёмно-коричневый кардиган крупной вязки с замшевыми накладками на локтях — классический «учёный» атрибут, при этом фактура крупная и небрежная. Чёрные митенки (обрезанные перчатки) на руке — упомянутый в материалах характерный маркер. Стол завален книгами, тетрадями, чашка чая — среда работы внутреннего мира. Жест с ручкой у виска, задумчивый взгляд в сторону — мысль уходит «куда-то туда». Очень типичная мужская Яга в творческом или научном поле.", "yaga_04": "Яга в «бродячей» версии — самая яркая по контрасту с офисной чистотой. Длинные неухоженные тёмные волосы, тёмная щетина — образ человека, которому не до зеркала. Множество слоёв одежды: жилет поверх худи, всё в пятнах, потёртое, заношенное буквально до дыр. Огромный потрёпанный канвасовый рюкзак рядом — главный Яговский атрибут «всё с собой». Поза собранная, локти на коленях, прямой взгляд в камеру — у Яги взгляд может быть и таким, не только «вдаль». Среда: зал ожидания, аэропорт, кто-то на лавке рядом — Яга везде один, даже в толпе. Тут проявление «комфорт превыше социальных норм» доведено почти до бомж-эстетики.", "yaga_05": "Женская Яга в домашне-эзотерической версии. Длинные неухоженные седые волосы — главный женский маркер архетипа. Несколько слоёв: тёмный шерстяной шарф-палантин, какой-то платок под ним, вязаные рукава — много слоёв разных фактур. Множество слоёв деревянных бус-оберегов на шее, природные материалы. Среда абсолютно «Яговская»: подоконник с кристаллами, камнями, ракушками, керамическими чашками с травами, комнатные растения везде. Лёгкая полуулыбка глазами, но мимика не настолько активная, как у других архетипов. Это Яга-знахарка, Яга со своим миром, в который ты можешь войти, если повезёт.", "premudraya_01": "Классическая Василиса Премудрая в рабочей среде. Идеально подобранное каре — самая распространённая стрижка этого архетипа: практично, опрятно, ничего лишнего. Серый блазер поверх белой блузы со скромными сборками — униформа функциональности, без украшений и излишеств. На пальце видно обручальное кольцо — единственное украшение, как и положено по канону. Лицо сосредоточенное, нейтральное, лёгкая «деловая» собранность во взгляде. Идеально вписана в офисную среду с люминесцентным светом. Этот тип женщин сразу узнаётся по принципу «всё работает, ничего не отвлекает».", "premudraya_02": "Мужская Премудрая в чистом виде. Очень короткая практичная стрижка — почти ёжик, никаких укладок и формы. Белая рубашка под горло, ничего расстёгнуто, ничего лишнего. Указующий жест пальцем на маркерной доске — характерная Премудрая жестикуляция «должен, обязан, положено». Лицо со слегка нахмуренными бровями, ироничный взгляд прямо в камеру — это и есть «лёгкий гнев», базовая эмоция архетипа. Никаких часов, колец, ничего на запястьях. Среда: чистый офис, доска со схемами — функциональное пространство для функционального человека.", "premudraya_03": "Премудрая в более «мягком» офисном варианте, но архетип читается ясно. Очень короткая стрижка-пикси — практичность во главе угла, никаких укладок. Бежевый пиджак поверх кремовой водолазки и часы на коричневом ремешке — спокойная, незаметная палитра. Скрещенные руки на столе, ноготки коротко подстрижены, никаких украшений кроме часов. Папки с документами слева, телефон, всё аккуратно на местах. Лицо: лёгкое недовольство, как из учебника. Чуть приподнятая бровь, ироничный взгляд в сторону — «опять что-то надо обсуждать». Это Премудрая на руководящей позиции, и она ровно столько раздражена, сколько ей положено.", "premudraya_04": "Старшая женская Премудрая. Седые волосы естественного цвета подстрижены в идеально ровное каре чуть выше плеч — никакого окрашивания, никакой укладки в стиле «как из салона». Тёмно-синяя шёлковая блуза, V-образный вырез, рукава длинные — закрыто, аккуратно, ничего лишнего. На пальце единственное украшение — обручальное кольцо. Прямой взгляд в камеру с лёгкой иронией в уголках губ, скрещенные руки на столе. Это Премудрая, которая дошла до возраста уверенности: ничего не нужно доказывать, ничего не нужно прятать.", "premudraya_05": "Мужская Премудрая средних лет. Короткая практичная стрижка, аккуратно подстрижено. Тёмно-синий джемпер поверх голубой рубашки — спокойные тёмные тона, никаких ярких акцентов. Никаких часов, никаких колец, ничего на запястьях вообще. Скрещенные руки, лёгкая иронично-вопросительная мимика — это и есть базовый «недовольный с интересом» взгляд Премудрой. Среда: чистый офис со стеклянными перегородками, никакого личного декора. Стакан воды рядом — функциональный объект. Это вариант Премудрой, который сидит на встрече и думает «когда же все наконец перестанут говорить и начнут делать».", "prekrasnaya_01": "Прекрасная как из учебника. Сложная объёмная укладка «как из дорогого салона» — не «уложила сама», тут видна работа стилиста. Яркая красная помада — обязательный атрибут, как сказано в материалах. Расшитый блестящий жакет с декором — яркость до уровня кича. На руке несколько массивных колец одновременно — украшений всегда МНОГО. Длинные тёмные ногти с дизайном — «руки для Инстаграма». Сумка Chanel с золотой цепью — известный бренд категории люкс, демонстрация статуса. Среда — золочёный люксовый интерьер. Если на одном человеке яркая помада, сложная причёска, много колец и брендовая сумка — это всегда Прекрасная.", "prekrasnaya_02": "Прекрасная в гламурно-инстаграмной версии. Длинные распущенные блонд-волосы, явно ухоженные и волнистые от стилиста. Топ из золотой пайетки — блёстки в полный размер, прямо по канону. Огромные серьги-кристаллы и сразу несколько массивных браслетов в стопке — украшений всегда больше, чем «положено». Длинные розовые ногти, ремень с большой золотой пряжкой GG (Gucci) — открытая демонстрация бренда. Чехол телефона тоже в стразах — даже бытовой предмет должен блестеть. Среда — гламурное лобби отеля с люстрами. Прекрасная в Прекрасной, без полутонов.", "prekrasnaya_03": "Мужская Прекрасная. У мужчин архетип читается по-другому, полезно тренироваться отдельно. Резкая модная стрижка с выбритыми висками — характерная «резьба», упомянутая в материалах. Аккуратная стилизованная борода — классический способ выделиться у мужской Прекрасной. Дорогой тёмно-синий пиджак по фигуре, белая рубашка расстёгнута на 2-3 пуговицы — «активная демонстрация тела». Массивные золотые часы на руке — обязательный статусный аксессуар. Тонкая золотая цепочка под рубашкой. Поза в люксовом ресторане с локтями раскинутыми. Главное отличие от Царевича: у Прекрасной всё на витрине, видна цена. У Царевича статус прячется в качестве.", "prekrasnaya_04": "Прекрасная в типичной «шоппинг-моде». Длинные тёмные распущенные волосы, идеально уложенные. Ярко-розовая помада + крупный макияж глаз с ресницами — макияж до уровня кича. Розовое обтягивающее платье — «активная демонстрация тела» из канона. Огромное кольцо с бриллиантом, браслет, длинные розовые ногти — украшений МНОГО. Сумка Prada с обвешанной гирляндой брелоков, помпонов и плюшевых игрушек — это и есть «сумки обвешаны талисманами», прямо как в материалах. Среда — бутик премиум-сумок. Это Прекрасная в её естественной среде обитания: магазин, где можно ещё что-то добавить к образу.", "prekrasnaya_05": "Прекрасная в более «дорого-сдержанной» версии — на грани с Царевичем, но по деталям всё-таки Прекрасная. Прическа собрана в высокий гладкий хвост — салонная укладка, не сама. Шёлковый костюм-двойка с графическим чёрно-белым принтом — остромодная вещь сезона. Массивные серьги-кольца «архитектурной» формы, золотая цепочка с медальоном, несколько браслетов на одной руке, золотые часы Rolex с зелёным циферблатом — украшений всё равно МНОГО. Пакеты Chanel рядом — намёк на «откуда я и куда я». Поза в кресле явно отрепетирована перед камерой. Тут Прекрасная играет в «дорогой минимализм», но детали (блестящие часы, цепь, бренд в кадре) всё равно выдают архетип.", "tsarevich_01": "Иван Царевич без единой осечки. Классический серый костюм с тёмно-синим галстуком — строгая приверженность одной форме, классика. Костюм безупречного качества, идеально сидит, без видимых логотипов. Стальные часы на руке — статусный аксессуар, но не кричащий. Седеющие виски на тёмных волосах добавляют образ «времени и опыта». Поза стоя у панорамного окна, взгляд направлен куда-то вдаль на город — это и есть «взгляд на цель» из канона. Одна рука в кармане, вторая поправляет пуговицу — контролируемая пластика. Царевич всегда читается через сочетание «дорого + сдержанно + всегда работает».", "tsarevich_02": "Царевич в кабинете. Тёмно-синий пиджак поверх водолазки того же цвета — единая монохромная гамма, дорогая и сдержанная. Дорогие часы с золотым корпусом на запястье — статус, видимый только тем, кто разбирается. Аккуратная щетина, ухоженная, но не модная — мужская версия «контроля над собой». Переплетённые пальцы перед собой — это поза доминирования и контроля, типичная для архетипа. Прямой жёсткий взгляд в камеру — ригидное выражение, доминантно-наступательное. Кабинет в тёмном дереве, кожаное кресло, фотографии в рамках. Царевич не сидит расслабленно даже за своим столом.", "tsarevich_03": "Царевич в публичной риторической позе. Тёмно-серый костюм-тройка с жилетом, белой рубашкой и тёмным галстуком — классическая трёхсоставная форма. Белый платок-паше в нагрудном кармане — деталь, которая делает образ «полным», без полумер. Седые волосы зачёсаны назад. Жест открытой ладонью вперёд — типичная Царевичская «жестикуляция вперёд и вверх». Лицо в полу-наступательной экспрессии, говорит к собеседнику с авторитетом. Стакан воды и документы перед ним — рабочая среда. Это Царевич, который проводит совещание или ведёт переговоры — и контролирует пространство своим присутствием.", "tsarevich_04": "Царевич в «luxury casual» версии. Тёмно-синий джемпер из кашемира поверх белой рубашки — без галстука, но рубашка остаётся. Это та самая «классика всегда и везде» — даже когда формально без пиджака, всё равно белый воротник на месте. Стальные часы на запястье едва видны под манжетой — статус, который не выставляется. Стоит в люксовом лобби отеля с хрустальными люстрами и белыми тюльпанами — среда «не для всех». Взгляд направлен куда-то вдаль, плотно сжатые губы, лёгкая аккуратная щетина. Это Царевич в «выходной», но даже в выходной он на работе.", "tsarevich_05": "Царевич в кабинетной позе власти. Бордовая водолазка из тонкого кашемира — идеально по фигуре, дорогой материал без видимых логотипов. Часы на чёрном кожаном ремешке — классика для своих. Скрещенные руки на груди — поза доминирования и контроля. Седеющие виски + аккуратная щетина = образ зрелого статуса. Кабинет в тёмном дереве: книжные шкафы за спиной, портрет на стене, медные настольные лампы — антураж «не для всех», где каждый предмет дорогой. Лёгкая полуулыбка с прищуром — доминантно-оценивающий взгляд. Так Царевич встречает посетителей в своём кабинете.", "volk_01": "Серый Волк в офисе. Тёмно-серый свитер с круглым вырезом поверх белой футболки — буквально учебная палитра архетипа. Никаких аксессуаров: ни часов, ни цепочек, ни значков, ни принтов. Внешность намеренно не запоминается. Телефон в руке держит перед собой — это барьер, контроль дистанции, типичный Волковский жест. Лицо нейтральное, без выраженной эмоции, лёгкая полуулыбка скорее вежливая, чем настоящая. Среда: типичный безликий офис. Серый Волк всегда выглядит как «человек, которого ты только что видел, но не запомнил» — и это его сила.", "volk_02": "Женский Волк. Тёмно-серый свитер крупной вязки, тёмные джинсы — монохромная гамма, ничего ярче. Волосы убраны назад в простой низкий пучок, никакой формы, никакой укладки. Без макияжа или с едва заметным, без украшений вообще. Поза: руки сложены спереди, как защитный замок — типичный Волковский барьер. Взгляд в сторону, не на камеру — внутренняя дистанция от наблюдателя. Среда домашняя, но обезличенная: книжный шкаф, картина, светлые стены — ничего личного. Главное отличие от Премудрой: у Премудрой опрятность сделана сознательно для эффективности, у Волка — для слияния со средой.", "volk_03": "Волк в положении «за барьером». Тёмно-синяя водолазка по горло — закрытая шея, нейтральный цвет, никаких деталей. Перед ним ноутбук, который служит физическим барьером и поднят на уровень груди — типичная Волковская защита пространства. Прямой взгляд в камеру, но без агрессии — оценивающий, контролирующий, со скрытой настороженностью. Аккуратная короткая стрижка, лёгкая щетина — ничего, что цеплялось бы за взгляд. Среда: безликий офис со стеклянными перегородками, растение слева. Волк здесь — наблюдатель, держит ситуацию под контролем, не раскрываясь.", "volk_04": "Женский Волк в кафе. Тёмно-серая шёлковая блуза, тёмные волосы собраны в низкий хвост — простая, без формы укладка. Минимум украшений — едва видна тонкая цепочка. Скрещенные руки на груди — закрытая защитная поза, классика архетипа. Взгляд направлен в сторону, мимо камеры, чуть нахмуренные брови — настороженность, внутренняя оценка ситуации. Среда: общественное кафе, кто-то на заднем плане работает, но фигурант сидит обособленно — Волк всегда «в среде, но не из неё». Угол тела повернут чуть в сторону от собеседника — ещё один маркер дистанции.", "volk_05": "Волк в позе «полного укрытия». Светло-серая рубашка с закатанными рукавами — нейтральные пастельные тона, ничего яркого. Прижимает к груди раскрытый блокнот, как щит — двойной Волковский барьер (опущенная голова + объект перед собой). Глаза опущены к записям, нет зрительного контакта — Волк не хочет, чтобы его читали. Лёгкая щетина, никаких часов, никаких украшений вообще. Среда: переговорный стол, кто-то сидит напротив (виден край плеча), но Волк сосредоточен на своих заметках, не на собеседнике. Так Волк защищается на встрече: уходит в записи, держит между собой и миром физический объект.", "its_01": "Третий сын в раздолбайской версии. Сразу читается: чёрная футболка с приколом про кофе «DEPRESSO — when you've run out of coffee» — это та самая «футболка со смешной надписью», главный маркер. Расстёгнутая клетчатая рубашка поверх, накинутая небрежно — фирменная Третий-сыновская небрежность, не неряшливость. Джинсы и классические чёрные Vans — универсальная обувь «вездеход». Открытый смех, голова откинута назад, обе руки разведены в широких жестах — гиперкинетическая жестикуляция, ориентированная на контакт. Среда: креативный коворкинг. Если человек одет, чтобы рассмешить — это Третий сын.", "its_02": "Женский Третий сын, ещё ярче. Растрёпанная высокая укладка-«крендель» — не специально растрёпанная для красоты, а потому что некогда. Оранжевый худи оверсайз — яркий цвет, бросается в глаза. Открытый рот в смехе, обе руки тянутся вперёд указывающими жестами — гиперкинетика и контакт с собеседником. Лицо буквально в эмоции, не сдерживается. Среда: обычный офис, но человек явно не вписывается в его строгий ритм — приносит свою энергию. Главное отличие от Прекрасной: Прекрасная привлекает внимание собой через образ, Третий сын — через энергию.", "its_03": "Третий сын в кафе с друзьями. Кудрявые волосы естественной формы, не уложенные — типичная небрежность. Белая футболка с прикольным графическим принтом (мультяшный персонаж) — главный Третий-сыновский маркер «футболка ради эмоции». Поверх — джинсовая куртка, накинутая открыто, не застёгнутая — раздолбайский код. Обе руки разведены в широком жесте при разговоре, чашка капучино перед ним — рассказывает что-то с эмоциями. Открытый смех, лёгкая щетина без формы. Третий сын в естественной среде: кафе, разговор, эмоция, прикол на футболке.", "its_04": "Женский Третий сын в творческой среде. Растрёпанный высокий пучок, выбившиеся пряди — не специально, а потому что увлеклась. Винтажная футболка Led Zeppelin — это та самая «футболка со смешной надписью», но в музыкальной версии. Поверх — клетчатая рубашка-оверсайз, наброшена небрежно, рукава никак не подвёрнуты. Открытый смех, поднятая рука с растопыренными пальцами в эмоциональном жесте, в другой — раскрытый блокнот с записями. Доска со схемами на заднем плане. Это Третий сын в коворкинге или на брейншторме: энергия + хаос + увлечённость одновременно.", "its_05": "Третий сын в более «опрятной», но всё равно типичной версии. Ярко-синий толстый свитшот с логотипом adidas — яркий бренд, ровно по канону. Под ним голубая рубашка — «криво» вышел из-под свитшота, но это не баг, а стиль. Открытая улыбка с зубами, обе руки раскрыты в широком жесте при разговоре — гиперкинетическая жестикуляция. Кудрявые волосы лежат как лежат, лёгкая щетина без формы. Светлое пространство офиса с растениями, стулом. Это Третий сын на встрече: пришёл, увлёкся, начал рассказывать, заулыбался, начал жестикулировать. Всё естественно и контагиозно."}, "generalShort": {"yaga": "Архетип трансформатора: внутренний мир важнее внешнего вида.", "premudraya": "Архетип порядка и культа функциональности.", "prekrasnaya": "Звезда софитов: характер выставлен на витрину.", "tsarevich": "Человек с миссией: работа 24/7, без переключения.", "volk": "Мимикрия и надёжность: главный принцип — не выделяться.", "its": "Позитив и энергия, вечный двигатель.", "bayun": "Баланс, интуиция и встроенное чувство стиля."}, "markers": {"yaga": {"correct": ["Балахонистая одежда оверсайз", "Многослойность образа", "Неухоженные волосы или борода", "Эклектичные сочетания"], "wrong": ["Деловой костюм по фигуре", "Идеальная укладка", "Минимализм и опрятность"]}, "premudraya": {"correct": ["Короткая стрижка / каре", "Спокойные неброские тона", "Минимум украшений", "Идеальная опрятность"], "wrong": ["Длинные акриловые ногти", "Блёстки и стразы", "Балахонистая одежда"]}, "prekrasnaya": {"correct": ["Яркая помада или макияж", "Много украшений", "Сложная укладка как из салона", "Брендовая дорогая сумка"], "wrong": ["Растрёпанные волосы", "Серая монохромная гамма", "Полное отсутствие макияжа"]}, "tsarevich": {"correct": ["Классический дорогой костюм", "Статусные часы", "Доминантная поза", "Взгляд направлен на цель"], "wrong": ["Футболка со смешным принтом", "Кеды или кроссовки", "Длинные неухоженные волосы"]}, "volk": {"correct": ["Серая или тёмная палитра", "Минимум деталей и аксессуаров", "Закрытая или защитная поза", "Сливается с фоном"], "wrong": ["Яркие цвета", "Массивные украшения", "Демонстративная поза"]}, "its": {"correct": ["Прикольный принт или надпись", "Широкие открытые жесты", "Универсальная обувь", "Гиперактивная мимика"], "wrong": ["Дорогой деловой костюм", "Швейцарские часы", "Контролируемые сдержанные жесты"]}, "bayun": {"correct": ["Тёплая природная палитра", "Мягкая фактура (вязка, бархат)", "Расслабленная поза", "Кружка, книга или плед рядом"], "wrong": ["Яркие кричащие цвета", "Массивные блестящие украшения", "Доминантная поза"]}}};
+const TOTAL = { 1: 10, 2: 10, 3: 5 };
+const THRESHOLD = { 1: 7, 2: 7, 3: 4 };
+
+let state = {
+  view: 'menu', level: null, unlockedLevel: 1,
+  qIndex: 0, correct: 0, answers: [],
+  currentArch: null, currentImg: null, currentSeries: null,
+  markerPool: null, selectedMarkers: [], level2Phase: 'markers',
+  markersScore: null, chosenId: null, recentImages: {},
+};
+
+const screen = document.getElementById('screen');
+
+function pickArchetype() {
+  return DATA.archetypes[Math.floor(Math.random() * DATA.archetypes.length)];
+}
+
+// Выбираем картинку с учётом истории — стараемся не повторять только что показанные
+function pickImage(archId) {
+  const imgs = DATA.images[archId];
+  const recent = state.recentImages[archId] || [];
+  const available = imgs.filter(i => !recent.includes(i));
+  const pool = available.length > 0 ? available : imgs;
+  const picked = pool[Math.floor(Math.random() * pool.length)];
+  state.recentImages[archId] = [...recent.slice(-2), picked];
+  return picked;
+}
+
+function pickSeries(archId) {
+  // 3 разные картинки одного архетипа
+  const imgs = [...DATA.images[archId]];
+  // Перемешиваем и берём первые 3
+  for (let i = imgs.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [imgs[i], imgs[j]] = [imgs[j], imgs[i]];
+  }
+  return imgs.slice(0, 3);
+}
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function render() {
+  screen.innerHTML = '';
+  if (state.view === 'menu') renderMenu();
+  else if (state.view === 'question') renderQuestion();
+  else if (state.view === 'reveal') renderReveal();
+  else if (state.view === 'levelComplete') renderLevelComplete();
+  else if (state.view === 'levelFailed') renderLevelFailed();
+  window.scrollTo(0, 0);
+}
+
+function renderMenu() {
+  screen.innerHTML = `
+    <h1 class="menu-title">Архетипы<br>по внешности</h1>
+    <div class="menu-sub">тренируем взгляд</div>
+    <div class="ornament"></div>
+    <button class="level-card" onclick="startLevel(1)">
+      <span class="level-num">1</span>
+      <span class="level-title">Узнать архетип</span>
+      <div class="level-desc">Картинка → выбрать один из 7 архетипов. Нужно 7 из 10 правильных, чтобы открыть уровень 2.</div>
+    </button>
+    <button class="level-card ${state.unlockedLevel >= 2 ? '' : 'locked'}" onclick="${state.unlockedLevel >= 2 ? 'startLevel(2)' : 'shakeLock(this)'}">
+      <span class="level-num">2</span>
+      <span class="level-title">Найти маркеры</span>
+      ${state.unlockedLevel >= 2 ? '' : '<span class="lock-icon">⌧</span>'}
+      <div class="level-desc">Сначала отметить замеченные признаки на картинке, потом определить архетип.</div>
+    </button>
+    <button class="level-card ${state.unlockedLevel >= 3 ? '' : 'locked'}" onclick="${state.unlockedLevel >= 3 ? 'startLevel(3)' : 'shakeLock(this)'}">
+      <span class="level-num">3</span>
+      <span class="level-title">Серия картинок</span>
+      ${state.unlockedLevel >= 3 ? '' : '<span class="lock-icon">⌧</span>'}
+      <div class="level-desc">Три разных картинки одного архетипа. Найти, что их объединяет.</div>
+    </button>
+    <div class="ornament"></div>
+    <div style="text-align: center; font-size: 12px; color: #888; line-height: 1.5; padding: 0 20px;">
+      Прогресс не сохраняется между сессиями.<br>
+      Каждый запуск — новая тренировка.
+    </div>
+  `;
+}
+
+window.shakeLock = (el) => {
+  el.style.animation = 'none';
+  setTimeout(() => { el.style.animation = 'fadeIn 0.2s'; }, 10);
+};
+
+window.startLevel = (level) => {
+  state = {
+    ...state, view: 'question', level: level, qIndex: 0, correct: 0, answers: [],
+    currentArch: null, currentImg: null, currentSeries: null,
+    markerPool: null, selectedMarkers: [], level2Phase: 'markers',
+    markersScore: null, chosenId: null, recentImages: {},
+  };
+  nextQuestion();
+};
+
+function nextQuestion() {
+  state.currentArch = pickArchetype();
+  if (state.level === 3) {
+    state.currentSeries = pickSeries(state.currentArch.id);
+  } else {
+    state.currentImg = pickImage(state.currentArch.id);
+  }
+  state.selectedMarkers = [];
+  state.level2Phase = 'markers';
+  state.markersScore = null;
+  state.chosenId = null;
+  
+  if (state.level === 2) {
+    const m = DATA.markers[state.currentArch.id];
+    state.markerPool = shuffleArray([
+      ...m.correct.map(t => ({text: t, correct: true})),
+      ...m.wrong.map(t => ({text: t, correct: false}))
+    ]);
+  }
+  state.view = 'question';
+  render();
+}
+
+function renderQuestion() {
+  const topBar = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="goToMenu()">← Меню</button>
+      <div class="level-tag">УРОВЕНЬ ${state.level}</div>
+    </div>
+  `;
+  let dots = '';
+  for (let i = 0; i < TOTAL[state.level]; i++) {
+    let cls = 'dot';
+    if (i < state.qIndex) cls += state.answers[i].correct ? ' correct' : ' wrong';
+    else if (i === state.qIndex) cls += ' current';
+    dots += `<div class="${cls}"></div>`;
+  }
+  const progressRow = `
+    <div class="progress-row">
+      <span>Вопрос ${state.qIndex + 1} из ${TOTAL[state.level]}</span>
+      <span>${state.correct} правильно</span>
+    </div>
+    <div class="dots">${dots}</div>
+  `;
+  let body = '';
+  if (state.level === 1) {
+    body = renderImageBlock(state.currentImg) + 
+      '<div class="q-label">Какой это архетип?</div>' +
+      renderArchetypeChoices('answerLevel1');
+  } else if (state.level === 2) {
+    if (state.level2Phase === 'markers') {
+      let markerBtns = '';
+      state.markerPool.forEach((m, i) => {
+        const sel = state.selectedMarkers.includes(i);
+        markerBtns += `<button class="marker-btn ${sel ? 'selected' : ''}" onclick="toggleMarker(${i})">
+          <span class="check">${sel ? '✓' : '○'}</span>${m.text}
+        </button>`;
+      });
+      body = renderImageBlock(state.currentImg) +
+        '<div class="q-label">Отметьте признаки, которые вы видите</div>' +
+        '<div class="markers-list">' + markerBtns + '</div>' +
+        '<button class="primary-btn" onclick="confirmMarkers()">Дальше →</button>';
+    } else {
+      body = renderImageBlock(state.currentImg) +
+        '<div class="q-label">Теперь — какой это архетип?</div>' +
+        renderArchetypeChoices('answerLevel2');
+    }
+  } else if (state.level === 3) {
+    let seriesHtml = '<div class="series-grid">';
+    state.currentSeries.forEach(img => {
+      seriesHtml += `<div class="image-card"><img src="${DATA.imageData[img]}" alt="" loading="lazy" decoding="async"></div>`;
+    });
+    seriesHtml += '</div>';
+    body = seriesHtml +
+      '<div class="q-label">Какой архетип объединяет эти три картинки?</div>' +
+      renderArchetypeChoices('answerLevel3');
+  }
+  screen.innerHTML = topBar + progressRow + body;
+}
+
+function renderImageBlock(imgKey) {
+  return `<div class="image-card"><img src="${DATA.imageData[imgKey]}" alt="" loading="lazy" decoding="async"></div>`;
+}
+
+function renderArchetypeChoices(handler) {
+  let html = '<div class="answers-grid">';
+  DATA.archetypes.forEach(a => {
+    html += `<button class="answer-btn" onclick="${handler}('${a.id}')">${a.name}</button>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+window.answerLevel1 = (id) => {
+  const correct = id === state.currentArch.id;
+  state.answers.push({correct, chosen: id});
+  if (correct) state.correct++;
+  state.chosenId = id;
+  state.view = 'reveal';
+  render();
+};
+
+window.toggleMarker = (i) => {
+  const idx = state.selectedMarkers.indexOf(i);
+  if (idx >= 0) state.selectedMarkers.splice(idx, 1);
+  else state.selectedMarkers.push(i);
+  render();
+};
+
+window.confirmMarkers = () => {
+  const correctSelected = state.selectedMarkers.filter(i => state.markerPool[i].correct).length;
+  const totalCorrectInPool = state.markerPool.filter(m => m.correct).length;
+  state.markersScore = `${correctSelected}/${totalCorrectInPool}`;
+  state.level2Phase = 'choice';
+  render();
+};
+
+window.answerLevel2 = (id) => {
+  const correct = id === state.currentArch.id;
+  state.answers.push({correct, chosen: id});
+  if (correct) state.correct++;
+  state.chosenId = id;
+  state.view = 'reveal';
+  render();
+};
+
+window.answerLevel3 = (id) => {
+  const correct = id === state.currentArch.id;
+  state.answers.push({correct, chosen: id});
+  if (correct) state.correct++;
+  state.chosenId = id;
+  state.view = 'reveal';
+  render();
+};
+
+function renderReveal() {
+  const last = state.answers[state.answers.length - 1];
+  const correct = last.correct;
+  const actual = state.currentArch;
+  const chosen = DATA.archetypes.find(a => a.id === state.chosenId);
+  const topBar = `
+    <div class="top-bar">
+      <button class="back-btn" onclick="goToMenu()">← Меню</button>
+      <div class="level-tag">УРОВЕНЬ ${state.level}</div>
+    </div>
+  `;
+  const verdict = `
+    <div class="verdict">
+      <span class="verdict-badge ${correct ? 'verdict-correct' : 'verdict-wrong'}">
+        ${correct ? '✓ Правильно' : '✗ Не угадали'}
+      </span>
+    </div>
+  `;
+  const answerBox = `
+    <div class="answer-box">
+      <div class="answer-label">Это</div>
+      <div class="answer-name">${actual.name}</div>
+      ${!correct ? `<div class="your-choice">Вы выбрали: ${chosen.name}</div>` : ''}
+      ${state.level === 2 && state.markersScore ? `<div class="markers-score">Маркеров найдено: ${state.markersScore}</div>` : ''}
+    </div>
+  `;
+  // Для уровней 1 и 2 — разбор текущей картинки. Для уровня 3 — первой картинки серии
+  const imgKey = state.level === 3 ? state.currentSeries[0] : state.currentImg;
+  const personalText = DATA.perImage[imgKey] || '';
+  const generalShort = DATA.generalShort[actual.id];
+  const explBlock = `
+    <div class="explanation">${personalText}</div>
+    <div class="explanation-general">${generalShort}</div>
+  `;
+  const isLast = state.qIndex + 1 >= TOTAL[state.level];
+  const btnText = isLast ? 'Подвести итоги →' : 'Следующая картинка →';
+  screen.innerHTML = topBar + verdict + answerBox + explBlock + 
+    `<button class="primary-btn" onclick="continueAfterReveal()">${btnText}</button>`;
+}
+
+window.continueAfterReveal = () => {
+  state.qIndex++;
+  if (state.qIndex >= TOTAL[state.level]) {
+    if (state.correct >= THRESHOLD[state.level]) {
+      state.view = 'levelComplete';
+      if (state.level + 1 > state.unlockedLevel) state.unlockedLevel = state.level + 1;
+    } else {
+      state.view = 'levelFailed';
+    }
+    render();
+  } else {
+    nextQuestion();
+  }
+};
+
+function renderLevelComplete() {
+  const total = TOTAL[state.level];
+  const isFinal = state.level === 3;
+  screen.innerHTML = `
+    <div class="final-screen">
+      <div class="final-icon">✓</div>
+      <h2 class="final-title">${isFinal ? 'Все уровни пройдены' : `Уровень ${state.level} пройден`}</h2>
+      <div class="final-score">${state.correct} из ${total} правильно</div>
+      ${!isFinal ? `<button class="primary-btn" onclick="startLevel(${state.level + 1})">Перейти на уровень ${state.level + 1} →</button>` : ''}
+      <button class="secondary-btn" onclick="startLevel(${state.level})">Пройти уровень ещё раз</button>
+      <button class="secondary-btn" onclick="goToMenu()">В главное меню</button>
+    </div>
+  `;
+}
+
+function renderLevelFailed() {
+  const total = TOTAL[state.level];
+  screen.innerHTML = `
+    <div class="final-screen">
+      <h2 class="final-title">Почти получилось</h2>
+      <div class="final-score">${state.correct} из ${total} правильно</div>
+      <div class="final-hint">Для перехода на следующий уровень нужно ${THRESHOLD[state.level]} из ${total}</div>
+      <button class="primary-btn" onclick="startLevel(${state.level})">Попробовать ещё раз →</button>
+      <button class="secondary-btn" onclick="goToMenu()">В главное меню</button>
+    </div>
+  `;
+}
+
+window.goToMenu = () => {
+  state.view = 'menu';
+  render();
+};
+
+render();
+</script>
+</body>
+</html>
